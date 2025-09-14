@@ -342,3 +342,149 @@ So, let's move on to the next step.
 
 WHen we make a new app, we need to tell the engine(Backend) that we have a new app. So, that it can include the app in the project.
 
+To do that, open the `settings.py` file in the `Backend` folder and then find the `INSTALLED_APPS` list. This list contains all the apps that are included in the project. By default, it contains some built-in apps like `admin`, `auth`, `contenttypes`, `sessions`, etc.
+
+Add the name of the app that we just created to the top of the list. In our case, the name of the app is `todo`. So, add `'todo',` to the top of the list. It should look like this:
+
+```python
+# backend/settings.py
+INSTALLED_APPS = [
+    'todo',
+    # 'todo.apps.TodoConfig',  # Optional: If you want to use the AppConfig class
+
+    # Default Django apps
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+]
+```
+
+You can also use the method documented in the [official documentation](https://docs.djangoproject.com/en/5.2/intro/tutorial02/) to add the app to the list. In the documentation, they use the `AppConfig` class to add the app to the list. But I prefer the first method because it is simpler and easier to understand. If it doesn't work, you can always try the second method.
+
+You should see no errors in the terminal if you have the development server running. Now we can create our first model in the `models.py` file of the `todo` app.
+
+> We will always try to follow this rule `model -> migrate -> view -> template` when we are building a feature. This will help us to keep the code organized, modular and less error prone.
+
+# Making the first Model
+
+Just give you guys an example of how to make a model in django i'll make a very simple model named `Task` in the `models.py` file of the `todo` app.
+
+So, go to the `models.py` file and you should see something like this:
+
+```python
+from django.db import models 
+# Create your models here.
+```
+> This line imports the `models` module from the `django.db` package. This module contains all the classes and functions needed to define the models in django.
+
+We will use this module to define our model.
+
+Now, let's define the `Task` model. A task will have a `title` and date when it was created. So, we will define two fields in the model: `title` and `created_at`.
+
+```python
+from django.db import models
+
+# Create your models here.
+
+class Task(models.Model):
+    title = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+```
+
+> Here, we defined a class named `Task` that inherits from the `models.Model` class. This class represents a table in the database. Each attribute of the class represents a column in the table.
+
+- `title`: This is a `CharField` which is used to store string data. We have set the `max_length` attribute to `200` which means the maximum length of the title can be 200 characters.
+- `created_at`: This is a `DateTimeField` which is used to store date and time data. We have set the `auto_now_add` attribute to `True` which means the field will be automatically set to the current date and time when the object is created.
+
+Some more wise words about fields in django models:
+
+> Class(inheriting models.Model) means a table in the database.
+> Attributes inside the class means columns in the table.
+
+So, Our database Should Look like this:
+
+- Name of the table: `task` (appname_modelname in lowercase)
+| id | title       | created_at          |
+|----|-------------|---------------------|
+| 1  | Sample Task | 2023-09-14 10:00:00 |
+
+Now, that we have defined our first model, remember the rule `model -> migrate -> view -> template`, we need to create a migration for the model and then apply the migration to create the table in the database.
+
+So, by just making the model, we haven't created the table in the database yet. We need to create a migration for the model and then apply the migration to create the table in the database.
+
+So, let's create a migration for the model. To do that, run the command:
+
+```bash
+python manage.py makemigrations
+```
+
+After running this command, you should see something like this:
+
+![alt text](image-3.png)
+
+this means the backend has detected the changes made to the models of the app and we have successfully created a migration for the model.
+
+> If this doesn't work, make sure you have added the app to the `INSTALLED_APPS` list in the `settings.py` file. In my case, it worked by directly adding the app name to the list instead of using the `AppConfig` class. If it doesn't work for you, you might have to use the `AppConfig` class to add the app to the list like I have demonstrated before.
+
+Now, to be sure if the migration is created successfully, you can check the `migrations` folder in the `todo` app. You should see a new file named something like `0001_initial.py`. This file contains the migration for the model.
+
+```python
+# Generated by Django 5.2.6 on 2025-09-14 10:27
+
+from django.db import migrations, models
+
+
+class Migration(migrations.Migration):
+
+    initial = True
+
+    dependencies = [
+    ]
+
+    operations = [
+        migrations.CreateModel(
+            name='Task',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('title', models.CharField(max_length=200)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
+            ],
+        ),
+    ]
+```
+
+This is the migration file that is created for the `Task` model. What it does?
+
+Open the `db.sqlite3` file using a SQLite viewer or any database management tool that supports SQLite. Trry to find the `task` table in the database. You wouldn't find it. 
+
+Django will use this file to create the table in the database when we apply the migration.
+
+Now, we migrate.
+
+```bash
+python manage.py migrate
+```
+
+and you should see something like this:
+
+![alt text](image-4.png)
+
+This means the migration has been applied successfully and the table has been created in the database.
+
+Now goto the database file and check if the table is created successfully. You should see a new table named `todo_task` in the database. This is the table that is created for the `Task` model.
+
+Django automatically adds the app name as a prefix to the model name to create the table name to avoid any conflicts with other apps that might have the same model name.
+
+And in the table, you should see three columns: `id`, `title` and `created_at`. The `id` column is automatically created by django as the primary key for the table.
+
+I hope you understood all those steps. For me when I was learning django, this was sooo tough to understand. But now I can explain it in a simple way.
+
+It's all about practice. The more you practice, the more you understand.
+
+So, first rule: Model -> Migrate -> View -> Template
+
+Second rule: Always `makemigrations` after any change in the models and then `migrate` to apply the changes to the database.
