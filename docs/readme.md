@@ -488,3 +488,119 @@ It's all about practice. The more you practice, the more you understand.
 So, first rule: Model -> Migrate -> View -> Template
 
 Second rule: Always `makemigrations` after any change in the models and then `migrate` to apply the changes to the database.
+
+Now, let's talk about the `admin panel` of django.
+
+# Django Admin Panel
+
+Django has a nice built-in admin panel that allows you to manage the data of your application. It is a web-based interface that allows you to create, read, update and delete the data in the database.
+
+Because we now have a table in the database, we need to add some data to be rendered on the screen. We can do that using the admin panel.
+
+First we need to create a superuser to access the admin panel. To do that, run the command:
+
+```bash
+python manage.py createsuperuser
+```
+
+This will prompt you to enter a username, email and password for the superuser. Enter the details and press enter.
+
+> Remember the username and password because we will need it to login to the admin panel.
+
+Now, fo to the browser and go to the admin panel address which is `http://127.0.0.1:8000/admin/`. You should see the login page of the admin panel.
+
+Enter the username and password that you just created and press enter. You should see the dashboard of the admin panel.
+
+![alt text](image-5.png)
+
+Now, you should see some options like `Users`, `Groups`, etc. These are the built-in models of django. But we don't see our `Task` model here because we haven't registered it yet.
+
+We need to register the model in the `admin.py` file so that it can be accessed from the admin panel.
+
+To do that, open the `admin.py` file in the `todo` app and you should see something like this:
+
+```python   
+from django.contrib import admin
+
+# Register your models here.
+```
+
+Here we can register our models. So, let's register the `Task` model. To do that, we need to import the model first. So, add the following line at the top of the file:
+
+```python
+from django.contrib import admin
+
+# Register your models here.
+from .models import Task
+
+admin.site.register(Task)
+```
+
+Here, we imported the `Task` model from the `models.py` file and then registered it using the `admin.site.register()` method.
+
+Now, reload the admin panel page in the browser. You should see a new option named `Tasks` in the dashboard.
+
+You have full access to the `Task` model from the admin panel. You can create, read, update and delete the tasks from here.
+
+> The admin panel is a powerful tool that allows you to manage the data of your application without writing any code. There are many more features in the admin panel that you can explore on your own.
+
+Click on the `Tasks` option to go to the tasks page. You should see something like this:
+![alt text](image-6.png)
+
+The tasks page is empty because we haven't created any tasks yet. To create a new task, click on the `Add Task` button at the top right corner of the page.
+
+You should see a form to create a new task. Enter the title of the task and click on the `Save` button at the bottom of the page.
+
+You should see the task that you just created in the tasks page as `Task object (1)`. When you click it you should see the details of the task that you just created.
+
+Which is great. We have successfully created our first model, made a migration for the model but one thing that I don't like is the naming of the task object. It should show the title of the task instead of `Task object (1)`, right?
+
+This is because we haven't defined the `__str__` method in the model. This method is used to define the string representation of the object. By default, it returns the name of the class and the primary key of the object.
+
+But we can override this method to return the title of the task instead. To do that, open the `models.py` file in the `todo` app and add the following method to the `Task` class:
+
+```python
+from django.db import models
+
+# Create your models here.
+
+class Task(models.Model):
+    title = models.CharField(max_length=200)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.title # Override the __str__ method to return the title of the task
+```
+
+This will override the default `__str__` method and return the title of the task instead.
+
+> These are called magic methods in python. They are used to define the behavior of the object. `__str__` is used to define the string representation of the object. And you must return something from this method. If you don't return anything, it will return `None` by default.
+
+So, remember rule number 2? 
+
+Always `makemigrations` after any change in the models and then `migrate` to apply the changes to the database.
+
+So, run the command:
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+Now, run the server again and go to the admin panel. You should see the title of the task instead of `Task object (1)`.
+
+Noice.
+
+Now, you can create more tasks from the admin panel and see them in the tasks page.
+
+One cool thing about this is, if you take a look in the database file, you should see the tasks that you just created in the `todo_task` table.
+
+Well, That's it for this part. We can now create, read, update and delete tasks (CRUD operations) from the admin panel. But we want to do it from the frontend, right?
+
+Not So fast. Let's just finish up the backend part first. 
+
+Now, that we have a task title model. We should also store more information about the task right? Like it's `description`, `status` (completed or not), `priority` (high, medium, low), etc.
+
+So, let's make a new table in the database to store this information. 
+
+# Making Detailed Task Model
