@@ -604,3 +604,257 @@ Now, that we have a task title model. We should also store more information abou
 So, let's make a new table in the database to store this information. 
 
 # Making Detailed Task Model
+
+To do that, we will create a new model named `TaskDetail` in the `models.py` file of the `todo` app. As this is a part of the `Task` model, we need to build a `relationship` between the two models.
+
+If you don't know about relationships in databases, I suggest you to learn about it first. It is a very important concept in databases and you will be using it a lot when building web applications.
+
+We will be using a `One-to-One` relationship between the `Task` and `TaskDetail` models. This means that each task can have only one task detail and each task detail can belong to only one task.
+
+So, open the `models.py` file in the `todo` app and add the following code:
+
+```python
+class TaskDetail(models.Model):
+    task = models.OneToOneField(Task, on_delete=models.CASCADE, related_name='details') # One-to-One relationship with Task model and when the task is deleted, the task detail will also be deleted
+    description = models.TextField() # TextField is used to store large text data
+    created_at = models.DateTimeField(auto_now_add=True) # auto_now_add is used to set the field to the current date and time when the object is created
+    priority = models.IntegerField(default=1,choices=[(1,'Low'),(2,'Medium'),(3,'High')]) # IntegerField is used to store integer data and choices is used to limit the choices for the field
+    completed = models.BooleanField(default=False) # BooleanField is used to store boolean data
+    
+    def __str__(self):
+        return f"Detail for {self.task.title}"
+```
+
+Here, we defined a new class named `TaskDetail` that inherits from the `models.Model` class. Which represents the `taskdetail` table in the database.
+
+- `task`: This is a `OneToOneField` field which is used to create a one-to-one relationship between the `Task` and `TaskDetail` models. We have set the `on_delete` attribute to `models.CASCADE` which means that when the `Task` object is deleted, the `TaskDetail` object will also be deleted. We have also set the `related_name` attribute to `'details'` which means that we can access the task details from the task object using `task.details`. If we don't set this attribute, django will use the default name which is `taskdetail_set`. 
+
+> The `related_name` attribute is used to specify the name of the reverse relation from the related object back to this one. In this case, it allows us to access the task details from the task object using `task.details`. If we don't set this attribute, django will use the default name which is `taskdetail_set`.
+
+- `description`: This is a `TextField` which is used to store large text data. We will use this field to store the description of the task.
+- `created_at`: This is a `DateTimeField` which is used to store date and time data. We have set the `auto_now_add` attribute to `True` which means the field will be automatically set to the current date and time when the object is created.
+- `priority`: This is an `IntegerField` which is used to store integer data. We have set the `default` attribute to `1` which means the default priority of the task will be `Low`. We have also set the `choices` attribute to a list of tuples which limits the choices for the field. The first element of the tuple is the value that will be stored in the database and the second element is the human-readable name of the choice.
+- `completed`: This is a `BooleanField` which is used to store boolean data. We have set the `default` attribute to `False` which means the task is not completed by default.
+- `__str__` method: This method is used to define the string representation of the object. We have overridden this method to return the title of the task along with the text "Detail for".
+
+Now, remember the rule?
+
+Always `makemigrations` after any change in the models and then `migrate` to apply the changes to the database.
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+Now, run the server again.
+
+Everything should be working properly. No errors in the terminal. Ignor the warnings.
+
+Now, just like we registered the `Task` model in the `admin.py` file, we need to register the `TaskDetail` model as well.
+
+To do that, open the `admin.py` file in the `todo` app and add the following line:
+
+```python
+from .models import Task, TaskDetail
+
+admin.site.register(Task)
+admin.site.register(TaskDetail)
+```
+
+Now, you should be able to see the `Task` model in the admin panel.
+
+Now, we have two tables in the database: `todo_task` and `todo_taskdetail`. Add some data to the `todo_taskdetail` table and you should see it in the `todo_task` table.
+
+![alt text](image-7.png)
+
+> To add data you should see the some thing like this with an extra option for tasks. It's a drop down menu that has all the tasks in the database. You can select a task and then add data to it which will be stored in the `todo_taskdetail` table.
+
+Now, that we have a working django project with a database setup. We are ready to make a To-Do application using django.
+
+# Creating a View
+
+Remember the rule `model -> migrate -> view -> template` when we are building a feature. 
+
+> Ps: This rule will change soon.
+
+We made the models and the migrations. Now time to make a view.
+
+A `view` is a function that takes some `input` and returns some `output`.
+
+In django, a `view` is a function that takes a `request` object as input and returns a `response` object as output.
+
+This view function will be responsible for handling the requests from the frontend and sending the appropriate response back to the frontend.
+
+In short it takes a request finds the data from the database and sends it back to the frontend.
+
+So, let's make a view function in the `views.py` file of the `todo` app.
+
+Open the `views.py` file in the `todo` app and you should see something like this:
+
+```python
+from django.shortcuts import render
+from django.http import HttpResponse
+from .models import Task
+from django.core import serializers
+# Create your views here.
+
+
+def index(request):
+    data = Task.objects.all()
+    data = serializers.serialize('json', data)
+    return HttpResponse(data, content_type='application/json')
+```
+
+> This view function is taking a request as input and returning a JSON response as output.
+
+> We have to use the `serializers.serialize()` method to convert the data we get from the database to a JSON string before sending it back to the frontend.
+
+> HttpResponse is a class that will automatically set the correct headers and status code for the response.
+
+> This should create a JSON response with the data from the database.
+
+So, now let's See how we can show this data in the frontend.
+
+We have everything ready and now we have to tell django where to put this view function in the browser.
+
+If you take a close look at the `urls.py` file in the `BACKEND` app, you will see something like this:
+
+```python
+"""
+URL configuration for BACKEND project.
+
+The `urlpatterns` list routes URLs to views. For more information please see:
+    https://docs.djangoproject.com/en/5.2/topics/http/urls/
+Examples:
+Function views
+    1. Add an import:  from my_app import views
+    2. Add a URL to urlpatterns:  path('', views.home, name='home')
+Class-based views
+    1. Add an import:  from other_app.views import Home
+    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
+Including another URLconf
+    1. Import the include() function: from django.urls import include, path
+    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
+"""
+from django.contrib import admin
+from django.urls import path
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+]
+```
+
+> The comments in the `urls.py` file has some valuable information about how we should use the `path()` function to map the URLs to the views.
+
+This is the file where all our URLs should be defined. We will be using this file to map the URLs to the views.
+
+AAANDDD that will change the rule to `model -> migrate -> view -> URL -> template`.
+
+Now, let's add the path for our view function in the `urls.py` file.
+
+Open the `urls.py` file, I'll remove the comments and add the following code:   
+
+```python
+from django.contrib import admin
+from django.urls import path
+from todo.views import index #we have to import the view function here
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', index, name='index'), #we have to add the path for the view function here
+]
+```
+> Here right after the `from django.urls import path` line, we have to import the view function from the `todo.views` module. Because we are going to connect the view function to the URL.
+
+After that, we can create a new path for the view function. Byt adding the `path()` function and passing the URL as the first argument and the view function as the second argument.
+
+> The `name` argument is optional and it is used to give a name to the URL. It can be helpful sometimes.
+
+Here we are adding this view function to the root URL of the application.
+
+So, if we run the server again, we should see something like this:
+
+![alt text](image-8.png)
+
+And we can see the data and it's format in the root URL of the application.
+
+GREAT! We have a working django project with a database setup. 
+
+WE HAVE DONE ALL THE STEPS.
+
+And I hope you understood all those steps well. I know it's a long process but once you get the hang of it, it's really easy.
+
+> PS: THE HARD PART IS STILL ON IT'S WAY.
+
+We this was the very basic building blocks of a django project.
+
+But if we continue this path we will face some very painful problems.
+
+So, Time to make the code a little neat and tidy.
+
+# Making the code a little neat and tidy
+
+First, let's follow the real advice given by the Django documentation.
+
+NEVER, EVER, EVER, EVER, EVER, EVER use directly make `paths` of different apps in the `BACKEND/urls.py` file.
+
+This is because it will cause a lot of problemsm confusion and conflicts.
+
+So, we should always make a new file inside the app folder and Where we will create all the paths for all the views of the app and we can connect them to the URLs.
+
+For example, if we want to create a path for the `index` view of the `todo` app, we should create a new file named `urls.py` inside the `todo` app folder and add the following code:
+
+```python
+from django.urls import path
+from .views import index
+
+urlpatterns = [
+    path('', index, name='index'),
+]
+```
+
+It should be `EXACTLY` as above. If there is even a single difference, it will not work.
+
+> This the issue I will always have with Django. Sometime the typos will cause the whole project to break. 
+
+So, be careful... 
+
+> Advice: Just copy the code from the `BACKEND/urls.py` file and paste it in the new file and remove the admin panel path.
+
+Now, let's connect the new path to the URL.
+
+Open the `BACKEND/urls.py` file and add the following code:
+
+```python
+from django.contrib import admin
+from django.urls import path, include # We have to import the include function here
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('', include('todo.urls')),
+]
+```
+
+Here, we have used the `include()` function to include the `urls.py` file of the `todo` app.
+
+This will attach all the paths of the `todo` app to the root URL of the application.
+
+You can do some experimentation by changing the path for the include function to include the `urls.py` file of any other app you have created.
+
+Let's say we want to include the `todo` app path to the `/tasks` URL.
+
+```python
+from django.contrib import admin
+from django.urls import path, include # We have to import the include function here
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('tasks/', include('todo.urls')),
+]
+```
+
+Now the root URL of the application should show some error like this:
+![alt text](image-9.png)
+
+This is because we changed that path to render the url of the `todo` app from the root URL(`''`) to `/tasks`.
+
+So, if we go to the `/tasks` URL, we should see the data and it's format in the root URL of the application.
