@@ -28,15 +28,16 @@ First we need to create a `virtual environment` to keep our project dependencies
 ```bash
 python --version # for windows
 ```
+
 or
 
 ```bash
 python3 --version # for mac and linux
 ```
 
-I'm using python 3.11.8 so you should have at least python 3.8 or higher. 
+I'm using python 3.11.8 so you should have at least python 3.8 or higher.
 
-Why we need a virtual environment? 
+Why we need a virtual environment?
 
 Because when we are using multiple packages in our project, we don't want to mess up with the global packages that are installed in our system. So we create a virtual environment for each project. So, that it is isolated and free from any conflicts.
 
@@ -50,9 +51,10 @@ I always like to keep all my projects in my `desktop` So that it's easy to find 
 
 So, to create a virtual environment, run the command:
 
-```bash 
+```bash
 python -m venv env # for windows
 ```
+
 or
 
 ```bash
@@ -68,6 +70,7 @@ Now, that we need to do to use this fresh python installation is to activate it.
 ```bash
 .\env\Scripts\activate # for windows
 ```
+
 or
 
 ```bash
@@ -83,6 +86,7 @@ Let's install `Django` in our virtual environment. To do that, run the command:
 ```bash
 pip install django
 ```
+
 > ALways remember to check if the virtual environment is activated before installing any package. If not, you might end up installing the package globally which is not what we want.
 
 After running check for the version of django by running the command:
@@ -198,6 +202,7 @@ Quit the server with CONTROL-C.
 WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
 For more information on production servers see: https://docs.djangoproject.com/en/5.2/howto/deployment/
 ```
+
 If you see this, that means everything is working fine. Now, open your browser and go to the development server address given in the terminal. In my case, it's `http://127.0.0.1:8000/`. You should see the default django welcome page.
 
 ![alt text](image.png)
@@ -206,11 +211,12 @@ If you see this, that means everything is working fine. And we are ready to make
 
 ## Understanding the structure of a fullstack web application
 
-Now, django has a lot of built-in features and those can get really overwhelming really fast for a beginner. 
+Now, django has a lot of built-in features and those can get really overwhelming really fast for a beginner.
 
 So, let's learn the structure of every fullstack web application first.
 
 A fullstack web application has two main parts:
+
 1. Frontend
 2. Backend
 
@@ -219,6 +225,7 @@ The frontend is the part that the user interacts with. It is responsible for dis
 The backend is the part that handles the logic and data of the application. It is responsible for processing the data and sending it to the frontend. The backend is built using a server-side programming language like Python, Ruby, PHP, etc. In our case, we are using `Django` which is a web framework built using `Python`.
 
 Backend has two main parts:
+
 1. Server
 2. Database
 
@@ -239,7 +246,7 @@ If you have the development server running, you should see some errors in the te
 But we don't have a database yet. So, let's create the database by applying the migrations. To do that, stop the development server by pressing `CTRL + C` in the terminal and then run the command:
 
 ```bash
-python manage.py migrate 
+python manage.py migrate
 ```
 
 After that run the development server again by running the command:
@@ -252,7 +259,7 @@ The errors should be gone now. If you see the default django welcome page again,
 
 And If you take a look in your project directory, you should see a new file named `db.sqlite3`. This is the database file. This file contains all the data of your application.
 
-> if you are using vs code, you can see the database file in the file explorer. But not whats inside the file. I use a extension named `SQLite` to view the database file. 
+> if you are using vs code, you can see the database file in the file explorer. But not whats inside the file. I use a extension named `SQLite` to view the database file.
 
 And we have a working django project with a database setup. Now, we are ready to make a To-Do application using django.
 
@@ -375,9 +382,10 @@ Just give you guys an example of how to make a model in django i'll make a very 
 So, go to the `models.py` file and you should see something like this:
 
 ```python
-from django.db import models 
+from django.db import models
 # Create your models here.
 ```
+
 > This line imports the `models` module from the `django.db` package. This module contains all the classes and functions needed to define the models in django.
 
 We will use this module to define our model.
@@ -392,7 +400,7 @@ from django.db import models
 class Task(models.Model):
     title = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
 ```
 
 > Here, we defined a class named `Task` that inherits from the `models.Model` class. This class represents a table in the database. Each attribute of the class represents a column in the table.
@@ -408,9 +416,9 @@ Some more wise words about fields in django models:
 So, Our database Should Look like this:
 
 - Name of the table: `task` (appname_modelname in lowercase)
-| id | title       | created_at          |
-|----|-------------|---------------------|
-| 1  | Sample Task | 2023-09-14 10:00:00 |
+  | id | title | created_at |
+  |----|-------------|---------------------|
+  | 1 | Sample Task | 2023-09-14 10:00:00 |
 
 Now, that we have defined our first model, remember the rule `model -> migrate -> view -> template`, we need to create a migration for the model and then apply the migration to create the table in the database.
 
@@ -459,7 +467,7 @@ class Migration(migrations.Migration):
 
 This is the migration file that is created for the `Task` model. What it does?
 
-Open the `db.sqlite3` file using a SQLite viewer or any database management tool that supports SQLite. Trry to find the `task` table in the database. You wouldn't find it. 
+Open the `db.sqlite3` file using a SQLite viewer or any database management tool that supports SQLite. Trry to find the `task` table in the database. You wouldn't find it.
 
 Django will use this file to create the table in the database when we apply the migration.
 
@@ -519,7 +527,7 @@ We need to register the model in the `admin.py` file so that it can be accessed 
 
 To do that, open the `admin.py` file in the `todo` app and you should see something like this:
 
-```python   
+```python
 from django.contrib import admin
 
 # Register your models here.
@@ -567,7 +575,7 @@ from django.db import models
 class Task(models.Model):
     title = models.CharField(max_length=200)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return self.title # Override the __str__ method to return the title of the task
 ```
@@ -576,7 +584,7 @@ This will override the default `__str__` method and return the title of the task
 
 > These are called magic methods in python. They are used to define the behavior of the object. `__str__` is used to define the string representation of the object. And you must return something from this method. If you don't return anything, it will return `None` by default.
 
-So, remember rule number 2? 
+So, remember rule number 2?
 
 Always `makemigrations` after any change in the models and then `migrate` to apply the changes to the database.
 
@@ -597,11 +605,11 @@ One cool thing about this is, if you take a look in the database file, you shoul
 
 Well, That's it for this part. We can now create, read, update and delete tasks (CRUD operations) from the admin panel. But we want to do it from the frontend, right?
 
-Not So fast. Let's just finish up the backend part first. 
+Not So fast. Let's just finish up the backend part first.
 
 Now, that we have a task title model. We should also store more information about the task right? Like it's `description`, `status` (completed or not), `priority` (high, medium, low), etc.
 
-So, let's make a new table in the database to store this information. 
+So, let's make a new table in the database to store this information.
 
 # Making Detailed Task Model
 
@@ -620,14 +628,14 @@ class TaskDetail(models.Model):
     created_at = models.DateTimeField(auto_now_add=True) # auto_now_add is used to set the field to the current date and time when the object is created
     priority = models.IntegerField(default=1,choices=[(1,'Low'),(2,'Medium'),(3,'High')]) # IntegerField is used to store integer data and choices is used to limit the choices for the field
     completed = models.BooleanField(default=False) # BooleanField is used to store boolean data
-    
+
     def __str__(self):
         return f"Detail for {self.task.title}"
 ```
 
 Here, we defined a new class named `TaskDetail` that inherits from the `models.Model` class. Which represents the `taskdetail` table in the database.
 
-- `task`: This is a `OneToOneField` field which is used to create a one-to-one relationship between the `Task` and `TaskDetail` models. We have set the `on_delete` attribute to `models.CASCADE` which means that when the `Task` object is deleted, the `TaskDetail` object will also be deleted. We have also set the `related_name` attribute to `'details'` which means that we can access the task details from the task object using `task.details`. If we don't set this attribute, django will use the default name which is `taskdetail_set`. 
+- `task`: This is a `OneToOneField` field which is used to create a one-to-one relationship between the `Task` and `TaskDetail` models. We have set the `on_delete` attribute to `models.CASCADE` which means that when the `Task` object is deleted, the `TaskDetail` object will also be deleted. We have also set the `related_name` attribute to `'details'` which means that we can access the task details from the task object using `task.details`. If we don't set this attribute, django will use the default name which is `taskdetail_set`.
 
 > The `related_name` attribute is used to specify the name of the reverse relation from the related object back to this one. In this case, it allows us to access the task details from the task object using `task.details`. If we don't set this attribute, django will use the default name which is `taskdetail_set`.
 
@@ -673,7 +681,7 @@ Now, that we have a working django project with a database setup. We are ready t
 
 # Creating a View
 
-Remember the rule `model -> migrate -> view -> template` when we are building a feature. 
+Remember the rule `model -> migrate -> view -> template` when we are building a feature.
 
 > Ps: This rule will change soon.
 
@@ -752,7 +760,7 @@ AAANDDD that will change the rule to `model -> migrate -> view -> URL -> templat
 
 Now, let's add the path for our view function in the `urls.py` file.
 
-Open the `urls.py` file, I'll remove the comments and add the following code:   
+Open the `urls.py` file, I'll remove the comments and add the following code:
 
 ```python
 from django.contrib import admin
@@ -763,6 +771,7 @@ urlpatterns = [
     path('', index, name='index'), #we have to add the path for the view function here
 ]
 ```
+
 > Here right after the `from django.urls import path` line, we have to import the view function from the `todo.views` module. Because we are going to connect the view function to the URL.
 
 After that, we can create a new path for the view function. Byt adding the `path()` function and passing the URL as the first argument and the view function as the second argument.
@@ -777,7 +786,7 @@ So, if we run the server again, we should see something like this:
 
 And we can see the data and it's format in the root URL of the application.
 
-GREAT! We have a working django project with a database setup. 
+GREAT! We have a working django project with a database setup.
 
 WE HAVE DONE ALL THE STEPS.
 
@@ -814,9 +823,9 @@ urlpatterns = [
 
 It should be `EXACTLY` as above. If there is even a single difference, it will not work.
 
-> This the issue I will always have with Django. Sometime the typos will cause the whole project to break. 
+> This the issue I will always have with Django. Sometime the typos will cause the whole project to break.
 
-So, be careful... 
+So, be careful...
 
 > Advice: Just copy the code from the `BACKEND/urls.py` file and paste it in the new file and remove the admin panel path.
 
@@ -858,3 +867,461 @@ Now the root URL of the application should show some error like this:
 This is because we changed that path to render the url of the `todo` app from the root URL(`''`) to `/tasks`.
 
 So, if we go to the `/tasks` URL, we should see the data and it's format in the root URL of the application.
+
+It's best practice to set different URLs for different Apps.
+
+
+Now, time to make a real Front Page.
+
+# Making a Real Front Page with Django
+
+We know the steps and now we can make an actual Front Page with Django.
+
+We have evrything ready and do you remember the rule `model -> migrate -> view -> URL -> template`?
+
+Let's setup a template in the `todo` app.
+
+Open the `templates` folder in the `todo` app and create a new folder named `todo`. And inside that folder, create a new file named `index.html`.
+
+YES! YOU OPEN A NEW FOLDER NAMED `templates` IN THE `todo` APP AND CREATE ANOTHER FOLDER NAMED ACCORDING TO THE APP NAME(IT HAS TO BE THE SAME AS THE APP NAME) AND INSIDE THAT FOLDER, CREATE A NEW FILE NAMED `index.html`.
+
+> NOTE: `todo/templates/todo/index.html`
+
+I'll tell you why we need this whacky naming convention.
+
+JUST DO IT!
+
+Now, let's make a template for the `index` view of the `todo` app.
+
+Open the `index.html` file in the `todo` app and you should see something like this:
+
+```html
+<!-- todo/templates/todo/index.html -->
+<h1>WELCOME!</h1>
+
+<h2>This is the Home page of the To-Do application</h2>
+```
+
+This is the default template that is used by the `index` view of the `todo` app.
+
+> This is the default template that is used by the `index` view of the `todo` app.
+
+Now, we connect this template with the `index` view of the `todo` app.
+
+> I'll comment out the previous index function and add the following code:
+
+```python
+from django.shortcuts import render
+from django.http import HttpResponse
+from .models import Task
+from django.core import serializers
+# Create your views here.
+
+
+# def index(request):
+#     data = Task.objects.all()
+#     data = serializers.serialize('json', data)
+#     return HttpResponse(data, content_type='application/json')
+
+def index(request):
+    return render(request, 'todo/index.html')
+```
+
+> This is the `index` view of the `todo` app. We have added the `render()` function to render the template named `todo/index.html`.
+
+The render function takes two arguments, the first is the request object and the second is the template name.
+
+
+Now, let's run the server again and go to the root URL of the application.
+
+![alt text](image-10.png)
+
+And we can see the data and it's format in the root URL of the application.
+
+Awesome!
+
+Now let's talk about the `weird` naming convention.
+
+## Template Naming Convention
+
+Django projects usually have a lot of apps. And these apps has their own templates and views.
+
+So, it can be a hassle to keep track of all the templates and views of all the apps. So, what django does is search for the template and view in the `templates` folder of the app and if it doesn't find it, it will search in the `templates` folder of the root project.
+
+Now, this can cause some conflicts.
+
+Let's say you have an app named `blog` and you have a template named `index.html` in the `blog` app.
+
+And you have another app named `todo` and you have a template named `index.html` in the `todo` app.
+
+If you run the server, you will see the `index.html` template of the `blog` app and not the `index.html` template of the `todo` app.
+
+This is because django will search for the template in the `templates` folder of the `blog` app first and if it doesn't find it, it will search in the `templates` folder of the root project.
+
+Why it'll search in the blog app first?
+
+It's because we added the app to the `INSTALLED_APPS` list in the `settings.py` file of the root project.
+
+Whatever app comes first in the `INSTALLED_APPS` list will be the first app that django will search for the template in then the next app and so on.
+
+So, if we have multiple apps in the `INSTALLED_APPS` list and each app has a template with the same name, django will search for the template in the app that comes first in the `INSTALLED_APPS` list first.
+
+This is the reason why we have to follow the `weird` naming convention. Which will specify the app name in the template name.
+
+This way we can avoid any conflicts and make our code a little neat and tidy.
+
+Now, another issue will arise.
+
+## Template Inheritance
+
+As you can see we can directly add html code in a template and connect a view to it. It will render the html code in the template.
+
+But think about a normal html page. It has a lot of common code like the header, footer, navigation, etc.
+
+These elements don't change often and they are common for all the pages.
+
+So, how can we make a template that can be reused for other templates?
+
+This is called `template inheritance`.
+
+Template inheritance is a way to reuse a template and make it more generic.
+
+For example, we can make a `base.html` template and all the other templates can inherit from it.
+
+Here is the `base.html` template:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>This is the base template</h1>
+    {% block content %}
+    <!-- This is the content block where all the content will be added -->
+    {% endblock %}
+</body>
+</html>
+```
+
+> This is the `base.html` template. Which the structure of a standerd html page and Inside that we have a `content` block where all the content will be added.
+
+Don't get worried about the `block` tags.
+
+As we are using a non-standard framework, we have to write the code in a different language than `JS` in side a html file to work with it.
+
+So, django has a built-in template language called `Jinja2` which is used to render the templates.
+
+If you are using vs code you can install the [django extension](https://marketplace.visualstudio.com/items?itemName=batisteo.vscode-django) to get syntax highlighting for the django template language.
+
+I refer to this as `django template tags` because they are used to render the templates.
+
+There many types of `django template tags` and we will learn about them as we move forward with the project.
+
+Now, let's talk about the `block` tags.
+
+The `block` tags are used to define the content block where all the content will be added when the template is inherited.
+
+For example, we can define a `content` block in the `base.html` template and all the other templates can inherit from it.
+
+And when they inherit from the `base.html` template, they will be able to add their content to the `content` block.
+
+Now, a common misconception is that the `block` tags are used to define only the `content` block or we should always use the `block content` tag to define the content block.
+
+The syntax for the `block` tags is like this:
+
+```html
+{% block title %}
+    <!-- This is the content of the title block -->
+{% endblock %}
+```
+> Here you can see the `block` tag and the `title` argument. We can put anything we want in the `title` argument and it will be used as the name of the content block.
+
+So, we can define the `title` of the block to specify where in the base template the content of the block will be added.
+
+Now, let's inherit this base template in our `index.html` template.
+
+Open the `index.html` file in the `todo` app and let's extend:
+
+```html
+{% extends 'todo/base.html' %}
+
+<h1>WELCOME!</h1>
+
+<h2>This is the Home page of the To-Do application</h2>
+```
+
+> The extends tag is used to inherit the base template and we add the path of the base template in the `todo/base.html` file.
+
+Now, let's run the server again and go to the root URL of the application.
+
+![alt text](image-11.png)
+
+Well this is interesting. The base is there but where is the index?
+
+Well, it's because the index.html file is extending the `base.html` which makes the `index.html` a child template of the `base.html` template.
+
+In the `base.html` template, we have a `content` block that specifies where the `content` of the child template will be added and now we have to tell django what to put in the `content` block of the `index.html` template.
+
+So, we will add the block content tag in the `index.html` template.
+
+```html
+{% extends 'todo/base.html' %}
+
+{% block content %}
+  <h1>WELCOME!</h1>
+
+  <h2>This is the Home page of the To-Do application</h2>
+{% endblock %}
+```
+
+Now, the contents of the `index.html` template will be added to the `content` block of the `base.html` template.
+
+![alt text](image-12.png)
+
+A little confusing right?
+
+> Rule 3: Always add a block for the child template and with the same name as the block of the parent template.
+
+One last thing I want to show you guys is how we can add links to different pages in the `base.html` template.
+
+We can add links to different pages in the `base.html` template by using the `url` tag.
+
+For example, we can add a link to the `index` page of the `todo` app by using the following code:
+
+```html
+<a href="{% url 'index' %}">Home</a>
+```
+
+> The `url` tag is used to get the URL of the page and the `index` argument is the name of the view function of the `todo` app.
+
+Remember we added a name attribute to the `index` view function in the `urls.py` file of the `todo` app.
+
+```python
+#todo/urls.py
+from django.urls import path
+from todo.views import index
+
+urlpatterns = [
+    path('', index, name='index'), #the name of the URL is index
+]
+```
+
+> We use this name to get the URL of the `index` view function.
+
+The url tag will automatically add the URL of the `index` view function to the `Home` link.
+
+I hope you understood everything well.
+
+Now let's see the data in the browser.
+
+# Rendering the data in the browser
+
+Let's talk about the `render()` function.
+
+The `render()` function is used to render the template in the `index` view of the `todo` app.
+
+When we are in a url the view function of that url is called and the `render()` function is used to render the template.
+
+But it has some other uses too.
+
+It can send a HTTP response to the browser with the data in the template.
+
+> Simply: we can send data to the browser with the template along with the HTTP response.
+
+So, let's see what tasks are in the database.
+
+We will make a new page for it. And do you remember the rule `model -> migrate -> view -> URL -> template`?
+
+We have the model for the tasks in the database. WE also migrated the database.
+
+now we need a view function to render the template.
+
+Let's make a new view function in the `todo` app.
+
+Open the `views.py` file and let's make a new function named `tasks`.
+
+```python
+#todo/views.py
+from django.shortcuts import render
+from django.http import HttpResponse
+from .models import Task
+from django.core import serializers
+# Create your views here.
+
+
+#everything else stays the same
+
+def tasks(request):
+    data = Task.objects.all() #we have to get the data from the database
+    context = {'tasks': data} #we have to add the data to the context
+    return render(request, 'todo/tasks.html', context) #we pass the context to the render function
+```
+
+> This is the `tasks` view function of the `todo` app. We have added the `render()` function to render the template named `todo/tasks.html` and we have added the data to the context.
+
+The data will be available via the `tasks` key in the context.
+
+So, let's make a url for the `tasks` view function.
+
+Open the `urls.py` file and add the following code:
+
+```python
+#todo/urls.py
+from django.urls import path
+from todo.views import index, tasks
+
+urlpatterns = [
+    path('', index, name='index'), #the name of the URL is index
+    path('tasks/', tasks, name='tasks'), #the name of the URL is topics
+]
+```
+
+The url is set now time for the template.
+
+Make a new file inside the `templates/todo` folder named `tasks.html`.
+
+Open the `tasks.html` file and you should see something like this:
+
+```html
+<!-- todo/templates/todo/tasks.html -->
+{% extends 'todo/base.html' %}
+
+{% block content %}
+  <h1>
+    This is the tasks page of the To-Do application
+  </h1>
+{% endblock %}
+```
+> Here we extend the `base.html` template and inside the `content` block we have a `h1` tag with the text `This is the tasks page of the To-Do application`.
+
+This should render correctly in the `localhost:8000/tasks/` URL.
+
+![alt text](image-13.png)
+
+I've some changes to the `base.html` template. I removed the `h1` tag. I want to make the base template a navigation bar for the whole application.
+
+Let's add the a new link for the `tasks` page in the `base.html` template.
+
+```html
+<!-- todo/templates/todo/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <a href="{% url 'index' %}">Home</a>
+    <a href="{% url 'tasks' %}">Tasks</a>
+    {% block content %}
+    <!-- This is the content block where all the content will be added -->
+    {% endblock %}
+</body>
+</html>
+```
+
+> The `url` tag is used to get the URL of the page and the `tasks` argument is the name of the view function of the `todo` app.
+
+Now, how do we access the data we sent to the template?
+
+We can access the data in the template by using the `context` variable.
+
+For example, we can access the data in the `tasks` view function by using the `context` variable.
+
+It's pretty simple. We can render the whole context in the template by using `{{}}` which is called a `template variable`.
+
+Inside the double curly braces, we can access the keys of the context and the values of the context.
+
+So, let's access the `tasks` key in the context and render it in the template.
+
+```html
+<!-- todo/templates/todo/tasks.html -->
+{% extends 'todo/base.html' %}
+
+{% block content %}
+  <h1>This is the tasks page of the To-Do application</h1>
+  {{tasks}}
+{% endblock %}
+```
+
+> Now if you reload the browser, you should see the whole data of the tasks in the database.
+
+![alt text](image-14.png)
+
+You can access a single key in the context by using the dot notation. Let's say I want only the `first` entry of the tasks to be rendered in the template.
+
+I can do that by using the dot notation.
+
+```html
+<!-- todo/templates/todo/tasks.html -->
+{% extends 'todo/base.html' %}
+
+{% block content %}
+  <h1>This is the tasks page of the To-Do application</h1>
+  {{tasks.0}}
+{% endblock %}
+```
+
+> We cannot do indexing the python way but we can do it in the template using the dot notation.
+
+And it will render the first entry of the tasks list.
+
+![alt text](image-15.png)
+
+We can also access other properties of the tasks object.
+
+For example, we can access the `title` or `created_at` property of the tasks object by using the dot notation.
+
+```html
+<!-- todo/templates/todo/tasks.html -->
+{% extends 'todo/base.html' %}
+
+{% block content %}
+  <h1>This is the tasks page of the To-Do application</h1>
+  {{ tasks.0.title }}
+  {{ tasks.0.created_at }}
+{% endblock %}
+
+```
+
+![alt text](image-16.png)
+
+> Here I'm taking the `0` index of the tasks list and accessing the `title` and `created_at` property of the tasks object.
+
+We can do a lot more that just rendering the data independently.
+
+We can have for loops and if statements and other things.
+
+So, let's list out all the tasks in the database.
+
+Open the `tasks.html` file and add the following code:
+
+```html
+<!-- todo/templates/todo/tasks.html -->
+{% extends 'todo/base.html' %}
+
+{% block content %}
+  <h1>This is the tasks page of the To-Do application</h1>
+
+  {% for task in tasks %}
+    <h2>{{ task.title }}</h2>
+    <p>{{ task.created_at }}</p>
+  {% endfor %}
+
+{% endblock %}
+
+```
+
+> Here we have a for loop that loops through all the tasks in the database and renders the title and created_at of each task.
+
+Most of the django template tags have a starting `{% %}` and an ending `{% end %}` tag.
+
+For example, the `for` tag has a starting `{% for variable in list %}` and an ending `{% endfor %}` tag.
+
+![alt text](image-17.png)
+

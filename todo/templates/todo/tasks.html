@@ -1,0 +1,9 @@
+{% extends 'todo/base.html' %}
+
+{% block content %}
+  <h1>This is the tasks page of the To-Do application</h1>
+  {% for task in tasks %}
+    <h2>{{ task.title }}</h2>
+    <p>{{ task.created_at }}</p>
+  {% endfor %}
+{% endblock %}
