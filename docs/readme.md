@@ -1325,3 +1325,250 @@ For example, the `for` tag has a starting `{% for variable in list %}` and an en
 
 ![alt text](image-17.png)
 
+Not only that, we can use the `if` tag to check if a condition is true or false or `empty` to check if a list is empty.
+
+Let's clean up the `tasks.html` file.
+
+```html
+<!-- todo/templates/todo/tasks.html -->
+{% extends 'todo/base.html' %}
+
+{% block content %}
+  <h1>This is the tasks page of the To-Do application</h1>
+
+  <ul>
+    {% for task in tasks %}
+      <li>
+        <h2>{{ task.title }}</h2>
+        <p>{{ task.created_at }}</p>
+      </li>
+    {% empty %}
+      <li>No tasks</li>
+    {% endfor %}
+  </ul>
+
+{% endblock %}
+
+```
+
+We can do so much more.
+
+Like if you take a look at the `browser`, you can see the task are ordered by the date they were created in ascending order.
+
+![alt text](image-18.png)
+
+THis is because by default the data is sorted by the `created_at` field in ascending order.
+
+Let's say we want to order the tasks by the `created_at` field in descending order.
+
+WE can do that in two ways. 
+
+1. We can Query the database to order the tasks by the `created_at` in descending order.
+
+2. We can do it directly in the template.
+
+Doing it in the template might be a little advanced for now. So, I'll just query the database to order the tasks by the `created_at` in descending order.
+
+Open the `views.py` file and add the following code:
+
+```python
+def tasks(request):
+    data = Task.objects.order_by('-created_at')
+    context = {'tasks': data}
+    return render(request, 'todo/tasks.html', context)
+```
+
+> Here we're using the `order_by` method to order the tasks by the `created_at` field in descending order.
+
+The order by function takes a string as an argument which is the name of the field to order by. by default it is ascending order but we can use `-` to make it descending order.
+
+Now if you take a look at the `browser`, you can see the tasks are ordered by the date they were created in descending order.
+
+![alt text](image-19.png)
+
+Lastly I want to talk about individual tasks.
+
+# Setting Up Dynamic URLs
+
+We have a list of tasks and we want to be able to access each task individually and do CRUD operations on them.
+
+Manually creating individual URLs for each task is impossible.
+
+So, we clearly need a way to dynamically create URLs for each task.
+
+Just like `react routing`, `django` also has a way to dynamically create URLs for each task.
+
+For example, if we have a task with the id of `1`, we can create a URL for it by using the `id` of the task.
+
+so, In this case we need to create a view for each task.
+
+> Remember the rule? `model -> migrate -> view -> URL -> template`
+
+I want to make a page that will automatically render the template for each task and show the data of the task. Also The `task details`. That's why I made a one-to-one relationship between the `Task` model and the `TaskDetail` model.
+
+So, in the view we will query the database for the task with the `id` that we will get from the URL then we will fetch the data from the `task` and `taskdetail` models and send it to the template.
+
+Open the `views.py` file and let's do some coding:
+
+```python
+from django.shortcuts import render
+from django.http import HttpResponse
+from .models import Task, TaskDetail # import the Task and TaskDetail models
+from django.core import serializers
+# Create your views here.
+
+
+# everything else stays the same
+
+def single_task(request, id):
+    task = Task.objects.get(id=id)
+    taskdetail = TaskDetail.objects.get(task=task) # get the task details from the task
+    # taskdetail = task.details # get the task details from the task directly
+    context = {'task': task, 'taskdetail': taskdetail}
+    return render(request, 'todo/single_task.html', context)
+
+```
+
+Now let's talk about whats happening in the `single_task` view function.
+
+First, we need the id of the task from the URL. We will get it from the `id` parameter of the URL which will be passed to the `single_task` view function as an argument. So, that why I added the `id` parameter to the `single_task` view function.
+
+Now, we need to query the database for the task with the id that we got from the URL.
+
+We can use the `objects.get` method to query the database for the task with the id that we got from the URL.
+
+After that we can fetch the data from the `task` and `taskdetail` models and send it to the template.
+
+Now comes the dicey part.
+
+How do we get the details:
+
+- We can query the database for the task with that we got from the previous step.
+    - We can use the `objects.get` method to query the database for the `TaskDetail` model.
+    - As we have a one-to-one relationship between the `Task` and `TaskDetail` models, the query will automatically match the taskdetail to the task.
+
+ORRRRR,
+
+- We can use the `details` attribute of the `Task` model.
+    - Remember we added a `related_name` attribute to the `task` field in the `TaskDetail` model. `task = models.OneToOneField(Task, on_delete=models.CASCADE, related_name='details')` check the `models.py` file.
+    - We can use this name to directly get all the details of the task. So, we don't actually need to query the database from the `TaskDetail` model.
+    - We can just use `task.details` to get all the details connected to the task.
+
+- Then Just like the other views, we can render the template and send the data to the template.
+
+Now, we can set a dynamic URL for each task.
+
+```python
+# todo/urls.py
+from django.urls import path
+from todo.views import index, tasks,single_task # import the single_task view
+
+urlpatterns = [
+    path('', index, name='index'), 
+    path('tasks/', tasks, name='tasks'), 
+    path('tasks/<int:id>', single_task, name='single_task'), # add the dynamic URL
+]
+
+```
+
+> `<int:id>` is a placeholder for the id of the task. We are telling django that after `tasks/` we want to have the id of the task and we are setting a datatype for the id to be an integer.
+
+
+Now, we can set up the template. If you go to the view, in the `single_task` view function, I named the template `single_task.html`. So, let's make a new file named `single_task.html` in the `todo/templates/todo` folder.
+
+```html
+<!-- todo/templates/todo/single_task.html -->
+
+<!-- inherit from the base template -->
+{% extends "todo/base.html" %} 
+
+
+{% block content %}
+    <h1>Single Task</h1>
+    <!-- display the title of the task -->
+    <h2>{{ task.title }}</h2>
+    <!-- display the created_at of the task -->
+    <p>{{ task.created_at }}</p>
+    <!-- display the description of the task -->
+    <p>{{ taskdetail.description }}</p>
+    <!-- display the priority of the task -->
+    <p>{{ taskdetail.priority }}</p>
+    <!-- display the completed status of the task -->
+    <p>{{ taskdetail.completed }}</p>
+{% endblock %}
+
+```
+
+> Here I'm rendering the title, created_at, description, priority, and completed status of the task.
+
+Now, we can go to the `browser` and see the single task page.
+
+![alt text](image-20.png)
+
+I passed `http://127.0.0.1:8000/tasks/1` to the `browser` so that I can see the single task page of task id `1`. I can see the title, created_at, description, priority, and completed status of the task.
+
+We are successfully displaying the details of the task in the template.
+
+This means everythings working properly.
+
+But this kinda shucks. Because we have to pass the url link directly to the browser.
+
+Now, let's fix that.
+
+We can turn the Titles on the `tasks` views into hyperlinks.
+
+This way we can click on the title and go to the single task page.
+
+Open the `tasks.html` template and add the following code:
+
+```html
+<!-- todo/templates/todo/tasks.html -->
+{% extends 'todo/base.html' %}
+
+{% block content %}
+  <h1>This is the tasks page of the To-Do application</h1>
+
+  <ul>
+    {% for task in tasks %}
+      <li>
+        <h2>
+            <!-- adding the title into a link -->
+          <a href="{% url 'single_task' task.id %}">
+            {{ task.title }}
+          </a>
+        </h2>
+        <p>{{ task.created_at }}</p>
+      </li>
+    {% empty %}
+      <li>No tasks</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
+```
+> Here you can see that I added an anchor tag `<a>` to the title of the task. And I added a link to the single task page.
+
+> `{% url 'single_task' task.id %}` is django tag that will return the url of the single task page by taking the `name` of the url/view function and if it is a dynamic url, it will also take the value of the dynamic url which in this case is the id of the task.
+
+> The `name` of the url/view function should be passed as a string to the `{% url %}` tag.
+
+Now if you did all that you can go to the `browser` and go to the tasks page at `http://127.0.0.1:8000/tasks/` and you should see something like this.
+
+All the titles are blue links. You can click on them and go to the single task page.
+
+![alt text](image-21.png)
+
+Let's click on the last one. Which in this case is the oldest task.
+
+> We ordered the tasks by the `created_at` field in descending order earlier. remember?
+
+And success!
+
+BUUUUUUUT!
+
+There's still another problem left which can be pretty easily overlooked.
+
+I only filled the details for the `first_task`.
+
+So, If I click on any other task, what do you think would happen?!
+
+![alt text](image-22.png)

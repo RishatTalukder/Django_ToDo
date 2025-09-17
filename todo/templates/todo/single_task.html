@@ -1,0 +1,10 @@
+{% extends "todo/base.html" %}
+
+{% block content %}
+    <h1>Single Task</h1>
+    <h2>{{ task.title }}</h2>
+    <p>{{ task.created_at }}</p>
+    <p>{{ taskdetail.description }}</p>
+    <p>{{ taskdetail.priority }}</p>
+    <p>{{ taskdetail.completed }}</p>
+{% endblock %}

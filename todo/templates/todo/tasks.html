@@ -2,8 +2,18 @@
 
 {% block content %}
   <h1>This is the tasks page of the To-Do application</h1>
-  {% for task in tasks %}
-    <h2>{{ task.title }}</h2>
-    <p>{{ task.created_at }}</p>
-  {% endfor %}
+
+  <ul>
+    {% for task in tasks %}
+      <li>
+        <h2>
+          <a href="{% url 'single_task' task.id %}">{{ task.title }}
+          </a>
+        </h2>
+        <p>{{ task.created_at }}</p>
+      </li>
+    {% empty %}
+      <li>No tasks</li>
+    {% endfor %}
+  </ul>
 {% endblock %}
