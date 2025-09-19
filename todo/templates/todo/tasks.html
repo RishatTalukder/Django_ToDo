@@ -1,7 +1,9 @@
 {% extends 'todo/base.html' %}
 
 {% block content %}
-  <h1>This is the tasks page of the To-Do application</h1>
+  <h1>All tasks</h1>
+  {% comment %} Link to the add task page {% endcomment %}
+  <a href="{% url 'add_task' %}">Add task</a> 
 
   <ul>
     {% for task in tasks %}

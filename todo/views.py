@@ -1,7 +1,8 @@
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.http import HttpResponse
 from .models import Task, TaskDetail
 from django.core import serializers
+from .form import TaskForm
 # Create your views here.
 
 
@@ -22,7 +23,30 @@ def tasks(request):
 
 def single_task(request, id):
     task = Task.objects.get(id=id)
-    taskdetail = TaskDetail.objects.get(task=task)
+    try:
+        taskdetail = TaskDetail.objects.get(task=task)
+    except:
+        taskdetail = None
+    # taskdetail = TaskDetail.objects.get(task=task)
     # taskdetail = task.details
     context = {'task': task, 'taskdetail': taskdetail}
     return render(request, 'todo/single_task.html', context)
+
+def AddTask(request):
+    print(request)
+    if request.method == 'POST':
+        form = TaskForm(request.POST)
+        if form.is_valid():
+            title = form.cleaned_data['task']
+            description = form.cleaned_data['description']
+            priority = form.cleaned_data['priority']
+            completed = form.cleaned_data['completed']
+            task = Task(title=title)
+            task.save()
+            taskdetail = TaskDetail(task=task, description=description, priority=priority, completed=completed)
+            taskdetail.save()
+            return redirect('tasks')
+    else:
+        form = TaskForm()
+    context = {'form': form}
+    return render(request, 'todo/add_task.html', context)

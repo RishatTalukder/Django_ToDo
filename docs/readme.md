@@ -1572,3 +1572,391 @@ I only filled the details for the `first_task`.
 So, If I click on any other task, what do you think would happen?!
 
 ![alt text](image-22.png)
+
+This can be A big issue in the duture if we are not careful.
+
+> We can fix this by adding a check to see if the details for this task exist or not.
+
+Now, open the `single_task` view and add the following code:
+
+```python
+# todo/views.py
+def single_task(request, id):
+    task = Task.objects.get(id=id)
+    try:
+        taskdetail = TaskDetail.objects.get(task=task)
+    except:
+        taskdetail = None
+    context = {'task': task, 'taskdetail': taskdetail}
+    return render(request, 'todo/single_task.html', context)
+```
+
+> Here we are checking if an error is thrown when we try to get the details of the task. If the error is thrown, we will set the `taskdetail` to `None`. So, we can render the template and send the data to the template.
+
+Now, let's go to the `browser` and see the single task page.
+
+![alt text](image-23.png)
+
+Now, if we go to any task that does not have details, we will see the Title of the task but no details.
+
+We should make it more user friendly.
+
+We can check if the `taskdetail` is `None` or not and if it's none, we can show a message to the user so, that they know they don't have any details for this task.
+
+Open the `single_task.html` template and add the following code:
+
+```html
+<!-- todo/templates/todo/single_task.html -->
+{% extends 'todo/base.html' %}
+
+{% block content %}
+  <h1>Single Task</h1>
+  <h2>{{ task.title }}</h2>
+  <p>{{ task.created_at }}</p>
+
+  <!-- check if the taskdetail is None -->
+  {% if taskdetail %}
+    <p>{{ taskdetail.description }}</p>
+    <p>{{ taskdetail.priority }}</p>
+  {% else %}
+    <p>No details Available</p>
+  {% endif %}
+{% endblock %}
+
+```
+
+> And after this small change, we can go to the `browser` and reload the browser.
+
+![alt text](image-24.png)
+
+NOICE!!!
+
+We did it!
+
+Now, we have error control and we have a better user experience.
+
+Now, time for even more confusion.
+
+# Adding a new task
+
+Up until now, we have have made the database models, some pages to show the data and learned some django features.
+
+But one of the crucial features of a web application is the ability to add new data to the database.
+
+The user should be able add new tasks to the database.
+
+How do we do that?
+
+It's a complex process.
+
+So, listen carefully.
+
+There is a zero percent chance that you will understand this in the first attempt.
+
+So, let's break it down.
+
+We know that in a webpage for the user to send data to the server, we need to use a form that is a tag called `<form>`.
+
+The form tag has a attribute called `method` which is used to specify the method(Get, Post) that is used to send the data to the server.
+
+We have to use the form tag to send the data back to the server.
+
+But when we get the data. How do we get it back?
+
+Remember the rule? `model -> migrate -> view -> URL -> template`
+
+For getting the data back, It's exactly the opposite.
+
+So, `template -> URL -> view -> migrate -> model`
+
+We get the data from the template, we send it to the view through the URL, the view processes the data and sends it to the model.
+
+BUUUUUT, it's little more complicated.
+
+As a full stack framework django has it's own way of handling a form.
+
+The rule is still the same. But it's change a bit.
+
+`Form -> View -> URL -> Template -> View -> Model`
+
+> THIS WILL BE THE POST REQUEST RULE.
+
+We can directly make a form in the template.
+
+Get the data via the request object in the view and manually send it to the model.
+
+Which is great! normal workflow, piece of cake.
+
+But if you think about it this process is kinda repetitive. We make the form in the template with it's input fields and then we get the data from the request object, differentiate it and send it to the model and one issue will be `evaluation` of the data(if it's valid or not).
+
+This is a redundent process which can be resolved using API's. But we are not in a django API project right now.
+
+In django we can setup a form according to the models and our need before-hand and send it to the template using the context variable. And use that form for getting the data back from the template and all of this can be done without repetition.
+
+> Django developers believes in DRY(Don't Repeat Yourself) principle. That's why they developed the django form.
+
+So, let's first make a form.
+
+Make a new file called `form.py` and add the following code:
+
+```python
+# todo/form.py
+from django import forms
+
+class TaskForm(forms.Form):
+    task = forms.CharField(max_length=100) #charecter field for the task
+    description = forms.CharField(widget=forms.Textarea) #text area for the description
+    priority = forms.IntegerField(min_value=1, max_value=3, initial=1) #integer field for the priority
+    completed = forms.BooleanField(required=False, initial=False) #boolean field for the completed
+
+```
+
+Read closely, we have a lot to unpack.
+
+> In this file we are importing the `forms` module from the `django` library. This library has a lot of built in function and classes that can be translated to HTML.
+
+> We are making a class called `TaskForm` which inherits from the `Form` class.
+
+> In this class we set the `task`, `description`, `priority` and `completed` fields because a new task should have these fields.
+
+> We set the task field to a `CharField` which is a text field that can have a maximum length of 100 characters.
+
+> We set the description field to a `CharField` too. In general, a character field should have a limit but for description we don't want to limit it. That's why we use `widget=forms.Textarea` which is a text area field that can have unlimited characters. I'll talk about widgets later.
+
+> We set the priority field to an `IntegerField`. This is the input field for the priority of the task which is a number between 1 and 3. We set this for the `taskdetail`, remember?
+
+> We set the completed field to a `BooleanField`. This is the input field for the completed status of the task which is a boolean value.
+
+> We set the default value for the priority field to 1.
+
+> We set the minimum value for the priority field to 1.
+
+> We set the maximum value for the priority field to 3.
+
+> We are also setting up the completed field as optional, that's why we set `required=False` and the default value is `False`.
+
+And we made a small form for taking input from the user.
+
+This might look like I'm just doing things but I will turn this form into a template later without even writting a single line of input field in the template.
+
+We have the form ready.
+
+> POST REQUEST RULE: `Form -> View -> URL -> Template -> View -> Model`
+
+Let's make a `view` for the form.
+
+Open the `views.py` file and and we will just send this form to the template.
+
+```python
+# todo/views.py
+from django.shortcuts import redirect, render
+from django.http import HttpResponse
+from .models import Task, TaskDetail
+from django.core import serializers
+from .form import TaskForm # import the form
+# Create your views here.
+
+
+# rest of the code stays the same
+
+def AddTask(request): 
+    form = TaskForm() # initialize the empty form
+    context = {'form': form}
+    return render(request, 'todo/add_task.html', context)
+
+```
+
+> Here I made a function called `AddTask` which return rendered `add_task.html` where it will send the form.
+
+We also need the `URL` for the form.
+
+Open the `urls.py` file and add the following code:
+
+```python
+# todo/urls.py
+from django.urls import path
+from todo.views import AddTask, index, tasks,single_task # import the views
+
+urlpatterns = [
+    path('', index, name='index'),
+    path('tasks/', tasks, name='tasks'), 
+    path('tasks/<int:id>', single_task, name='single_task'),
+    path('tasks/new_task', AddTask, name='add_task'), #the name of the URL is add_task
+]
+
+```
+
+> We added the `add_task` URL to the `urls.py` file and set the `path` to the `tasks/new_task`.
+
+Now, let's make the template for the form.
+
+Make a new file called `add_task.html` in the templates folder and add the following code:
+
+```html
+# todo/add_task.html
+{% extends "todo/base.html" %}
+
+{% block content %}
+    <h1>Add a new task</h1>
+    <form method="post">
+      <!-- csrf token for security -->
+        {% csrf_token %} 
+        <!-- render the form as paragraphs -->
+        {{ form.as_p }}
+        <button type="submit">Save</button>
+    </form>
+{% endblock %}
+
+```
+
+We inherit form the `base.html` template then we add a the form tag where I set the method to `post` and inside the form tag I have a django csrf(will talk about this later) token tag that is for security. And then I render the form as paragraphs using the `as_p` method.
+
+And like I said before, I'll not write a single line of input field in the template.
+
+And here you have it just one line of django template code.
+
+Now what do you think will happend if you go to the `browser` and go to the `add_task` page at `http://127.0.0.1:8000/tasks/new_task`?
+
+![alt text](image-25.png)
+
+And voila! You have a form to add a new task.
+
+In the new_task page we see all the input fields rendered straight from the `form.py` class.
+
+Shocked! right?
+
+Django translates all the fields made in the `TaskForm` class into html input fields when we send the form to the template from the view as we did in the `views.py` file.
+
+This reduces our code a lot.
+
+And this class has a built in validation system for the form.
+
+And a very intuitive way to use it.
+
+Now, here we can see that the form is rendered in the template. And you should be able to write and edit inside the form.
+
+So, now how do we send data from the form to the model?
+
+Remember the `POST REQUEST RULE` my children?
+
+`Form -> View -> URL -> Template -> View -> Model`
+
+We have done 4 things so far.
+
+Now, we to go back to the `views.py` file and check for the request method. 
+
+When the use clicks the `Save` button in the form, the template will reload and send the data to the URL linked to the form. And it's will be a `POST` request.
+
+So, as in that URL(`tasks/new_task`), wehave the view fuction rendering the `add_task.html` template. We can check for the request method in the `views.py` file and That's why we pass a request object by default to the view functions. The request object will have the form data stored and we can process it using the form class.
+
+I think you will have a better understanding of this if I code a little bit more.
+
+```python
+# todo/views.py
+from django.shortcuts import redirect, render
+from django.http import HttpResponse
+from .models import Task, TaskDetail
+from django.core import serializers
+from .form import TaskForm
+# Create your views here.
+# everything else stays the same
+
+
+def AddTask(request):
+    print(request)
+    if request.method == 'POST': # if the request method is post
+        form = TaskForm(request.POST) # passing the request to the form for processing
+        if form.is_valid(): # if the form is valid
+            title = form.cleaned_data['task'] # getting the title from the form
+            description = form.cleaned_data['description'] # getting the description from the form
+            priority = form.cleaned_data['priority'] # getting the priority from the form
+            completed = form.cleaned_data['completed'] # getting the completed from the form
+            task = Task(title=title) # creating a new task by passing the title as the title attribute of the Task model
+            task.save() # we have to save the task to the database
+            taskdetail = TaskDetail(task=task, description=description, priority=priority, completed=completed) # creating a new taskdetail by passing the task, description, priority and completed as the attributes of the TaskDetail model
+            taskdetail.save() # we have to save the taskdetail to the database
+            return redirect('tasks') # redirecting to the tasks page
+    else:
+        form = TaskForm() # if the request method is not post
+    context = {'form': form}
+    return render(request, 'todo/add_task.html', context)
+
+```
+
+Now, break it down step by step.
+
+1. If the `request` method is `POST`, we create a `form` object by passing the `request.POST` to the `TaskForm` class.
+
+    - `request.POST` is the data sent by the user in the form.
+
+2. We can check if the `form` is valid by using the `form.is_valid()` method.
+
+3. If the `form` is valid, we can get the data from the form by using the `form.cleaned_data` dictionary.
+
+    - When we pass the `request.POST` to the `TaskForm` class, it will automatically validate the data and store it in a dictionary called `cleaned_data` where the field name is the key and the value is the data.
+
+4. We can directly pass the data to the model class using the attribute name of the model class.
+
+5. `Task` has only one attribute called `title` so we can directly pass the data to the `title` attribute of the `Task` model.
+
+6. The `Task` model has a `save()` method to save the data to the database.
+
+7. We do the same thing for the `TaskDetail` model and don't forget to save the data to the database.
+
+8. After that we can redirect to the `tasks` page using the the `redirect()` function, passing the name of the `tasks` page as the argument.
+
+9. ANNNND, if the `request` method is not `POST`, we create a new `form` object using the `TaskForm` class.
+
+10. We pass the `form` object to the `add_task.html` template.
+
+This way we can handle both type of requests in the same view function.
+
+Now, Navigate to the new_task page(`/tasks/new_task`) and write some data in the form and click the `Save` button. You should be redirected to the `tasks` page and at the top of the page you should see the new task.
+
+To be very sure you can also take a look inside the `db.sqlite3` file. You should see the new task in the `tasks` table and details for the new task in the `taskdetails` table.
+
+![alt text](image-26.png)
+
+And we are done!
+
+Now we can add new tasks to the database.
+
+And finally I'll add a button to the `tasks` page to add a `new_task`.
+
+```html
+<!--  todo/index.html -->
+{% extends 'todo/base.html' %}
+
+{% block content %}
+  <h1>All tasks</h1>
+  <!-- Link to the add task page -->
+  <a href="{% url 'add_task' %}">Add task</a> 
+
+  <ul>
+    {% for task in tasks %}
+      <li>
+        <h2>
+          <a href="{% url 'single_task' task.id %}">{{ task.title }}
+          </a>
+        </h2>
+        <p>{{ task.created_at }}</p>
+      </li>
+    {% empty %}
+      <li>No tasks</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
+
+```
+
+![alt text](image-27.png)
+
+And that's it!
+
+Success!
+
+We can click on the `Add task` button and add a new task to the database.
+
+We have a lot of work to do. But if you've reached this far, you know the gist of how to use Django.
+
+> And if you like the article this far, you can support me by leaving a star on the github repo/ leaving a like on this article. Also show your support by subscribing/following me on my socials. All the links are given at the start of the article.
