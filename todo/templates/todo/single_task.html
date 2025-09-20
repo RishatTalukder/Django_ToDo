@@ -7,9 +7,20 @@
 
   <!-- check if the taskdetail is None -->
   {% if taskdetail %}
-    <p>{{ taskdetail.description }}</p>
-    <p>{{ taskdetail.priority }}</p>
+    <p>
+      <strong>Description:</strong>
+      {{ taskdetail.description }}
+    </p>
+    <p>
+      <strong>Priority:</strong>
+      {{ taskdetail.priority }}
+    </p>
+    <p>
+      <strong>Completed:</strong>
+      {{ taskdetail.completed }}
+    </p>
   {% else %}
     <p>No details Available</p>
   {% endif %}
+  <a href="{% url 'update_taskdetail' task.id %}">Edit Task</a>
 {% endblock %}

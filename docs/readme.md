@@ -1960,3 +1960,301 @@ We can click on the `Add task` button and add a new task to the database.
 We have a lot of work to do. But if you've reached this far, you know the gist of how to use Django.
 
 > And if you like the article this far, you can support me by leaving a star on the github repo/ leaving a like on this article. Also show your support by subscribing/following me on my socials. All the links are given at the start of the article.
+
+Now, with that out of the way let's go full `CRUD` with the `Django` framework.
+
+# CRUD (Create, Read, Update, Delete)
+
+Now we know how to add new tasks(create data) for our application.
+
+Let's add the Edit functionality.
+
+Why am I doing this?
+
+Because I want to torture myself.
+
+Just kidding :) or am I?
+
+No I'm just kidding? I have to.
+
+This is because when a user adds new tasks, they have to add the details for the task.
+
+The priority and the completed status is set automatically from the form and the user is forced to add the description for the task.
+
+> If you try to keep the description empty, the form will not be valid and the user will not be able to save the task.
+
+> Heres a task for you figure out how you can make the input field be optional or required.
+
+So, if we add a new task, we need to add the details for the task and while adding or after addign we might want to change some of the details, like the descrition or the priority.
+
+This is where the `Update` functionality comes in.
+
+I will make a new page for a single_task where we can update the task and I'll add a button to the `single_task` page to update the task.
+
+Let's edit the template.
+
+```html
+<!-- todo/single_task.html -->
+{% extends 'todo/base.html' %}
+
+{% block content %}
+  <h1>Single Task</h1>
+  <h2>{{ task.title }}</h2>
+  <p>{{ task.created_at }}</p>
+
+  <!-- check if the taskdetail is None -->
+  {% if taskdetail %}
+  <!-- display the description -->
+    <p>
+      <strong>Description:</strong>
+      {{ taskdetail.description }}
+    </p> 
+    <!-- display the priority -->
+    <p>
+      <strong>Priority:</strong>
+      {{ taskdetail.priority }}
+    </p>
+    <!-- display the completed -->
+    <p>
+      <strong>Completed:</strong>
+      {{ taskdetail.completed }}
+    </p>
+  {% else %}
+    <p>No details Available</p>
+  {% endif %}
+  <!-- Link to the edit task page -->
+  <a href="">Edit Task</a>
+{% endblock %}
+
+```
+
+I kept the `href` empty because I haven't added the edit task path and view function yet and also I've added some extra stuff to make the template look better.
+
+![alt text](image-28.png)
+
+Well now let's talk about the `UPDATE request`.
+
+The update request is a `PUT` request.
+
+- Create -> POST
+- Read -> GET
+- Update -> PUT
+- Delete -> DELETE
+
+Put request works exactly the same as the post request.
+
+But instead of making a new task, it updates an existing task.
+
+So, we would need a form to update the task.
+
+SO, the rule is the same as the POST request.
+
+> Form -> View -> URL -> Template -> View -> Model
+
+Let's make a form.
+
+```python
+# todo/forms.py
+from django import forms
+from .models import TaskDetail
+
+# TaskForm stays the same
+
+class TaskDetailForm(forms.ModelForm):
+    class Meta:
+        model = TaskDetail
+        fields = ['description', 'priority', 'completed']
+```
+
+Here you can see I'm using a different approach to make the form.
+
+Previously I was using the `forms.Form` class to make the form. Now, I'm using the `forms.ModelForm` class to make the form.
+
+What's the difference?
+
+Almost everything is the same.
+
+Let me explain step by step.
+
+1. I'm using the `forms.ModelForm` class to make the form.
+2. Inside the `TaskDetailForm` class, I have another class called `Meta`.
+    - `Meta` class is for additional information about the form.
+3. Inside the `Meta` class, we are telling django about the model and the fields we want to use.
+4. `Form.ModelForm` will take the Meta information and make a form based on the model and the fields.
+5. It'll know what type of fields will be set for the form based on the model and the fields given in the Meta class.
+
+This shortens our code a lot but The issue is we can make a `Model form` for only one model in a class.
+
+In the `TaskForm` class, I was making the form for different models but as I need to only make a form for the `TaskDetail` model, I'm using the `Model form` to make things easier.
+
+Now, Let's make a view for the update task.
+
+```python
+# todo/views.py
+from django.shortcuts import redirect, render
+from django.http import HttpResponse
+from .models import Task, TaskDetail
+from .form import TaskDetailForm, TaskForm
+
+# everything else stays the same
+
+# Create your views here.
+def UpdateTaskDetail(request, id):
+    form = TaskDetailForm()
+    context = {'form': form}
+    return render(request, 'todo/update_taskdetail.html', context)
+```
+> We need the id of the task to get the task details from the database that's why I added the `id` parameter to the `UpdateTaskDetail` view function.
+
+Here I'm sending the form to the template.
+
+Let's set the path for the update task.
+
+```python
+from django.urls import path
+from todo.views import AddTask, UpdateTaskDetail, index, tasks,single_task
+
+urlpatterns = [
+    path('', index, name='index'), 
+    path('tasks/', tasks, name='tasks'), 
+    path('tasks/<int:id>', single_task, name='single_task'),
+    path('tasks/new_task', AddTask, name='add_task'),
+    path('tasks/update_taskdetail/<int:id>', UpdateTaskDetail, name='update_taskdetail'), # the name of the URL is update_taskdetail
+]
+
+```
+
+> Here I added the `update_taskdetail` URL to the `urls.py` file and set the `path` to the `tasks/update_taskdetail/<int:id>`.
+
+Here I set the path to the `dynamic path` because I need to get the id of the task to get the task details from the database.
+
+Now, let's make a template for the update task.
+
+```html
+<!-- todo/update_taskdetail.html -->
+{% extends "todo/base.html" %}
+
+{% block content %}
+    <h1>Update Task Detail</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save</button>
+    </form>
+{% endblock %}
+
+```
+
+> Simply rendering the form to the template.
+
+Here If you look closely, I'm using the `post` method even though I'm trying to update the task.
+
+This is because Django treats the `post` method as the default method for updating and creating a new task.
+
+Both works the same way and we can update the data using the view to the model.
+
+If you look at the page you should see every field is empty and Not much information is there. I'm trying to edit the task details not fully recreate the task.
+
+So, what I want is when I go inside this form to edit/update the task the form should be populated with existing data.
+
+Let's make a view for the update task.
+
+```python
+# todo/views.py
+from django.shortcuts import redirect, render
+from django.http import HttpResponse
+from .models import Task, TaskDetail
+from .form import TaskDetailForm, TaskForm
+
+# everything else stays the same
+
+# Create your views here.
+def UpdateTaskDetail(request, id):
+    task = Task.objects.get(id=id) # get the task
+    details = TaskDetail.objects.get(task=task) # get the task details
+    form = TaskDetailForm(instance=details) # populate the form with the task details
+    context = {'form': form, 'task': task}
+    return render(request, 'todo/update_taskdetail.html', context)
+```
+> Here I'm getting the task and task details from the database and populating the form with the task details.
+
+> By using the `instance` argument, the form will be populated with the values from the task details object automatically.
+
+I also need to pass the task to the template so that I can display it in the template.
+
+```html
+{% extends "todo/base.html" %}
+
+{% block content %}
+<!-- display the title -->
+    <h1>{{ task.title }}</h1> 
+    <form method="ppost">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Save</button>
+    </form>
+{% endblock %}
+
+```
+
+Now, You should see the title of the task on top of the page and also the form to update the task details prepoulated with the existing data.
+
+![alt text](image-29.png)
+
+Now, let's update the task details.
+
+```python
+# todo/views.py
+from django.shortcuts import redirect, render
+from django.http import HttpResponse
+from .models import Task, TaskDetail
+from .form import TaskDetailForm, TaskForm
+
+# everything else stays the same
+
+# Create your views here.
+def UpdateTaskDetail(request, id):
+    task = Task.objects.get(id=id) # get the task
+    details = TaskDetail.objects.get(task=task) # get the task details
+    if request.method == 'POST':
+        form = TaskDetailForm(request.POST, instance=details) # populate the form with the task details
+        if form.is_valid():
+            form.save()
+            return redirect('single_task', id=id)
+    else:
+        form = TaskDetailForm(instance=details) # populate the form with the task details
+    context = {'form': form, 'task': task}
+    return render(request, 'todo/update_taskdetail.html', context)
+```
+
+> Here just like the `AddTask` view, I'm checking if the request method is `post` and if the form is valid then I'm saving the form and redirecting to the `tasks` page.
+
+But there are some intricacies here.
+
+First, The instance argument is very important here. `ModelForm` uses the `instance` argument to populate the form and also detect what we are trying to update.
+
+By this instance argument, we are telling the form that we want to `UPDATE` this specific task details. Without this argument, the form will create a new task details object and save it to the database.
+
+As we have a `one-to-one` relationship between the `Task` and `TaskDetail` models, we cannot add new task details to an existing task with `details`.
+
+So, It would cause some very nasty errors.
+
+So, we need to use the `instance` argument to populate the form with the existing task details and also update the task details That's why when after checking, to validate the form, I'm passing the `details` we got from the `request` to the form along with the `instance` argument.
+
+Then with the `save()` method, we are saving the form and the data is updated in the database all internally.
+
+> Note: ModelForm is a very useful feature of Django. It processess almost everything internally and makes things very easy to write but hard to understand. So, be very careful while using it and understand how it works.
+
+Now, if we refresh the page, we should see a clean form and we can now update the task details.
+
+![alt text](image-30.png)
+
+Let's edit somethings.
+
+![alt text](image-31.png)
+
+Now, click on the `Save` button, It shoudl redirect you to the `single_task` page for this task and you should see everything updated.
+
+![alt text](image-32.png)
+
+And successfully updated the task details.
