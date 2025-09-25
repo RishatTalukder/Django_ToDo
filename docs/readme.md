@@ -2041,6 +2041,8 @@ The update request is a `PUT` request.
 - Update -> PUT
 - Delete -> DELETE
 
+## Update/Edit/Put
+
 Put request works exactly the same as the post request.
 
 But instead of making a new task, it updates an existing task.
@@ -2258,3 +2260,157 @@ Now, click on the `Save` button, It shoudl redirect you to the `single_task` pag
 ![alt text](image-32.png)
 
 And successfully updated the task details.
+
+Now, how do we `DELETE`?
+
+## Deleting
+
+For deleting, we can skip a step from our `POST/PUT` request rule.
+
+We will surely need a view function because that is the only to logically handle anything.
+
+I think we don't need a template for this. Or we can make a tamplate for confirmination but I want to show you guys how we can do it without a template.
+
+If you guys came this far you guys should've figured out that when we are in a `URL` path the view function connected to that url path will be called and then the view function will render the template.
+
+In this case, we can add a `link` for everytask in the `tasks` page and when we click on that link, it will delete the task and redirect us back to the `tasks` page.
+
+So, we muct need a view function for this and an `URL` path that will execute that view function.
+
+First let's add the link to the `tasks` page.
+
+```html
+<!-- todo/tasks.html -->
+{% extends 'todo/base.html' %}
+
+{% block content %}
+  <h1>All tasks</h1>
+  {% comment %} Link to the add task page {% endcomment %}
+  <a href="{% url 'add_task' %}">Add task</a> 
+
+  <ul>
+    {% for task in tasks %}
+      <li>
+        <h2>
+          <a href="{% url 'single_task' task.id %}">{{ task.title }}
+          </a>
+        </h2>
+        <p>{{ task.created_at }}</p>
+        <!-- Delete link -->
+        <a href="">
+          Delete
+        </a>
+      </li>
+    {% empty %}
+      <li>No tasks</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
+```
+> Here I added a anchor tag with the link to each task's in the `tasks` page.
+
+I Kept the link empty because we haven't implemented the `DeleteTask` view yet.
+
+Now, let's add the `DeleteTask` view.
+
+```python
+# todo/views.py
+def DeleteTask(request, id):
+    task = Task.objects.get(id=id) #get the task
+    task.delete() # delete the task
+    return redirect('tasks') # redirect to the tasks page
+```
+
+It's that simple.
+
+We will need the id because that is the primary key of the task and as we have a `one-to-one` relationship between the `Task` and `TaskDetail` models, `task = models.OneToOneField(Task, on_delete=models.CASCADE, related_name='details')` this `on_delete=models.CASCADE` will automatically delete the task details when the task is deleted from the database.
+
+Now, we setup the path of execution of the `DeleteTask` view function.
+
+```python
+from django.urls import path
+from todo.views import AddTask, DeleteTask, UpdateTaskDetail, index, tasks,single_task
+
+urlpatterns = [
+    path('', index, name='index'), 
+    path('tasks/', tasks, name='tasks'), 
+    path('tasks/<int:id>', single_task, name='single_task'),
+    path('tasks/new_task', AddTask, name='add_task'),
+    path('tasks/update_taskdetail/<int:id>', UpdateTaskDetail, name='update_taskdetail'),
+    path('tasks/delete_task/<int:id>', DeleteTask, name='delete_task') # link to the delete task view
+]
+```
+
+> Now, we have to add the `delete_task` URL to the `urls.py` file and set the `path` to the `tasks/delete_task/<int:id>`.
+
+And we can finally add the link to the `tasks` page.
+
+```html
+<!-- todo/tasks.html -->
+{% extends 'todo/base.html' %}
+
+{% block content %}
+  <h1>All tasks</h1>
+  {% comment %} Link to the add task page {% endcomment %}
+  <a href="{% url 'add_task' %}">Add task</a> 
+
+  <ul>
+    {% for task in tasks %}
+      <li>
+        <h2>
+          <a href="{% url 'single_task' task.id %}">{{ task.title }}
+          </a>
+        </h2>
+        <p>{{ task.created_at }}</p>
+        <!-- Delete link with the id of the task -->
+        <a href="{% url 'delete_task' task.id %}">
+          Delete
+        </a>
+      </li>
+    {% empty %}
+      <li>No tasks</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
+```
+
+> Now, we have added the `delete_task` URL to the `tasks` page and set the `path` to the `tasks/delete_task/<int:id>`.
+
+We can click on the `delete` link and it'll go to that path where the `delete_task` view will be executed and it'll get the id of the task through the `dynamic path` and delete the task from the database and redirect us back to the `tasks` page.
+
+So, BEFORE:
+
+![alt text](image-33.png)
+
+AFTER:
+
+![alt text](image-34.png)
+
+And that's how we can delete a task from the database.
+
+## HOMEWORK
+
+I have shown you a lot of things in this article. And it almost always follow the same pattern. And I've intensionally left out some of the other things that you'll do on your own.
+
+1. Implement the Functionality to Update a Task from the `tasks` page.
+2. Implement the Functionality to DELETE a `TaskDetail` from the `single_task` page.
+
+I'll be a good practice and it'll help you get a better understanding of the `Django` framework.
+
+Now, let's get to the most important part of any website. 
+
+# USER ACCOUNTS
+
+Django is an amazing framework because it has sooo many built in features and one of the most useful built in features is the ability to create user accounts.
+
+Djnaog has a internally built in `User` model that is used to create user accounts.
+
+If you take a look at the `admin` panel, you should see the `User` model.
+
+Click on it and you'll see that you username is there and when you click on it you'll see so many thing built in to the `User` model.
+
+Not only that it provides built in functionality to create user accounts verify emails and reset passwords.
+
+So, let's get on to creating user accounts.
+
+So, we need two pages, `sign up` and `log in`.

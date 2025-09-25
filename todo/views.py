@@ -63,3 +63,9 @@ def UpdateTaskDetail(request, id):
         form = TaskDetailForm(instance=details) # populate the form with the task details
     context = {'form': form, 'task': task}
     return render(request, 'todo/update_taskdetail.html', context)
+
+
+def DeleteTask(request, id):
+    task = Task.objects.get(id=id)
+    task.delete()
+    return redirect('tasks')

@@ -13,6 +13,9 @@
           </a>
         </h2>
         <p>{{ task.created_at }}</p>
+        <a href="{% url 'delete_task' task.id %}">
+          Delete
+        </a>
       </li>
     {% empty %}
       <li>No tasks</li>
